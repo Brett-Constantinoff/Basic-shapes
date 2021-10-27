@@ -8,33 +8,90 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include <iostream>
+#include <fstream>
+#include <string>
+#include <sstream>
 
-using namespace std;
 
-const char *vertexShaderSource = "#version 330 core\n"
-    "layout (location = 0) in vec3 aPos;\n"
-    "layout (location = 1) in vec4 vertexColour;\n"
+//holds the source code for each shader
+struct ShaderSource{
+    std::string vertexSource;
+    std::string fragmentSource;
+};
 
-    "uniform mat4 model;\n"
-    "uniform mat4 view;\n"
-    "uniform mat4 projection;\n"
 
-    "out vec4 fragmentColour;\n"
+static unsigned int CompileShader(const std::string &source, unsigned int type){
+    
+    const char* src = source.c_str(); //returns a pointer to source
 
-    "void main()\n"
-    "{\n"
-    "   gl_Position = projection * view * model * vec4(aPos, 1.0);\n"
-    "   fragmentColour = vertexColour;\n"
-    "}\0";
+    unsigned int shaderID = glCreateShader(type); //generates a shader ID
+    glShaderSource(shaderID, 1, &src, nullptr); //fills source code for desired shader
+    glCompileShader(shaderID); //compiles shader
 
-const char *fragmentShaderSource = "#version 330 core\n"
-    "in vec4 fragmentColour;\n"
-    "out vec4 colour;\n"
-    ""
-    "void main()\n"
-    "{\n"
-    "   colour = fragmentColour;\n"
-    "}\0";
+    //ensures succesful compilation
+    int success;
+    char infoLog[512];
+    glGetShaderiv(shaderID, GL_COMPILE_STATUS, &success);
+    if(!success){
+        glGetShaderInfoLog(shaderID, 512, NULL, infoLog);
+        std::cout << "ERROR:SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
+        glDeleteShader(shaderID);
+        exit(EXIT_FAILURE);
+    }
+
+    return shaderID; 
+}
+
+static unsigned int CreateShader(const std::string &vertexShader, const std::string &fragmentShader){
+
+    unsigned int program = glCreateProgram(); //creates current shader program
+    unsigned int vShader = CompileShader(vertexShader, GL_VERTEX_SHADER); //compiles vertex source
+    unsigned int fShader = CompileShader(fragmentShader, GL_FRAGMENT_SHADER); //compiles fragment source
+
+    //attaches shaders to program
+    glAttachShader(program, vShader);
+    glAttachShader(program, fShader);
+    //links the shader program
+    glLinkProgram(program);
+    //ensures successful linking
+    glValidateProgram(program);
+
+    glDeleteShader(vShader);
+    glDeleteShader(fShader);
+
+    return program;
+}
+
+static ShaderSource ParseShader(const std::string &filePath){
+
+    enum class ShaderType{
+        NONE = -1, VERTEX = 0, FRAGMENT = 1
+    };
+
+    ShaderType type = ShaderType::NONE;
+    std::ifstream stream(filePath); //gets current input stream
+    std::string line; //string to hold each line from file
+    std::stringstream ss[2];
+
+    while(getline(stream, line)){
+    
+        if(line.find("#shader") != std::string::npos){ //finds "#shader" in file
+           if(line.find("vertexShader") != std::string::npos){ //the current line holds "vertexShader" set type 
+               type = ShaderType::VERTEX;
+           }
+           else if(line.find("fragmentShader") != std::string::npos){//the current line holds "fragmentShader" set type 
+               type = ShaderType::FRAGMENT;
+           }    
+        }
+        else{
+            ss[(int)type] << line << '\n'; //push the line into the given array based on the index
+        }
+    }
+
+    return {ss[0].str(), ss[1].str()};
+
+
+}
 
 int main(){
     /*
@@ -51,163 +108,198 @@ int main(){
 #endif
 
     const unsigned int width = 800, height = 600;
-    GLFWwindow *win = glfwCreateWindow(width, height, "Cube", NULL, NULL);
+    GLFWwindow *win = glfwCreateWindow(width, height, "Cube", NULL, NULL); //creates current window
     if(!win){
-        cout << "Error creating OpenGL window" << endl;
+        std::cout << "Error creating OpenGL window" << std::endl;
         return -1;
     }
     glfwMakeContextCurrent(win);
     glViewport(0, 0, width, height);
-    glEnable(GL_DEPTH_TEST);
-    glDepthFunc(GL_LESS);
+    glEnable(GL_DEPTH_TEST); //enabled for 3D viewing
+    glDepthFunc(GL_LESS);//compares the depths of pixels
 
 
     glewExperimental = GL_TRUE;
     if(glewInit() != GLEW_OK){
-        cout << "Error initializing glew" << endl;
+        std::cout << "Error initializing glew" << std::endl;
     }
     
     /*----------SHADER SETUP----------*/
-    unsigned int vShader = glCreateShader(GL_VERTEX_SHADER);
-    glShaderSource(vShader, 1, &vertexShaderSource, NULL);
-    glCompileShader(vShader);
+    ShaderSource source = ParseShader("shader.shader"); //creates source code for shaders
+    unsigned int program = CreateShader(source.vertexSource, source.fragmentSource); //creates shader program
+   
 
-    int success;
-    char infoLog[512];
-    glGetShaderiv(vShader, GL_COMPILE_STATUS, &success);
-    if(!success){
-        glGetShaderInfoLog(vShader, 512, NULL, infoLog);
-        cout << "ERROR:SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << endl;
-        return -1;
-    }
-
-    unsigned int fShader = glCreateShader(GL_FRAGMENT_SHADER);
-    glShaderSource(fShader, 1, &fragmentShaderSource, NULL);
-    glCompileShader(fShader);
-
-    glGetShaderiv(fShader, GL_COMPILE_STATUS, &success);
-    if(!success){
-        glGetShaderInfoLog(fShader, 512, NULL, infoLog);
-        cout << "ERROR:SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << endl;
-        return -1;
-    }
-
-    unsigned int shaderProgram = glCreateProgram();
-    glAttachShader(shaderProgram, vShader);
-    glAttachShader(shaderProgram, fShader);
-    glLinkProgram(shaderProgram);
-
-    glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-    if(!success){
-        glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-        cout << "ERROR::SHADER::PROGRAM:LINKING_FAILED\n" << infoLog << endl;
-        return -1;
-    }
-    glDeleteShader(vShader);
-    glDeleteShader(fShader);
-
+    
+    /*----------BUFFER CREATION----------*/
     float vertices[]{
-       -0.5f, 0.0f, 0.0f,
-       0.0f, 0.0f, 0.0f, 
-       0.0f, 0.5f, 0.0f, 
-       -0.5f, 0.5f, 0.0f,
-       0.0f, 0.5f, 0.5f,
-       -0.5f, 0.5f, 0.5f, 
-       0.0f, 0.0f, 0.5f,
-       -0.5f, 0.0f, 0.5f
-    };
+      //front face
+      -0.5f, 0.0f, 0.0f, //0
+      0.0f, 0.5f, 0.0f, //1
+      -0.5f, 0.5f, 0.0f, //2
+      0.0f, 0.0f, 0.0f, //3
 
-    float colours[]{
-        0.0f, 0.0f, 0.0f, 1.0f,
-        0.5f, 0.5f, 0.5f, 1.0f,
-        0.4f, 0.25f, 0.6f, 1.0f, 
-        0.05f, 0.41f, 0.06f, 1.0f, 
-        0.1f, 1.0f, 0.4f, 1.0f, 
-        0.3f, 0.7f, 0.9f, 1.0f, 
-        1.0f, 1.0f, 1.0f, 1.0f,
-        0.4f, 0.3f, 0.1f, 1.0f
-    };
+      //right face
+      0.0f, 0.5f, 0.0f, //4
+      0.0f, 0.0f, 0.0f, //5
+      0.0f, 0.0f, 0.5f, //6
+      0.0f, 0.5f, 0.5f, //7
 
+      //back face
+      0.0f, 0.5f, 0.5f, //8
+      0.0f, 0.0f, 0.5f, //9
+      -0.5f, 0.0f, 0.5f, //10
+      -0.5f, 0.5f, 0.5f, //11
+
+      //left face
+      -0.5f, 0.5f, 0.0f, //12
+      -0.5f, 0.5f, 0.5f, //13
+      -0.5f, 0.0f, 0.5f, //14
+      -0.5f, 0.0f, 0.0f,  //15
+
+      //top face
+      0.0f, 0.5f, 0.0f, //16
+      0.0f, 0.5f, 0.5f, //17
+      -0.5f, 0.5f, 0.5f, //18
+      -0.5f, 0.5f, 0.0f, //19
+
+      //bottom face
+      0.0f, 0.0f, 0.0f, //20
+      -0.5f, 0.0f, 0.5f, //21
+      0.0f, 0.0f, 0.5f, //22
+      -0.5f, 0.0f, 0.0f  //23
+
+      
+    };
     unsigned int indices[]{
        //front face
        0, 1, 2,
-       0, 2, 3, 
+       1, 0, 3,
 
        //right face
-       1, 6, 2,
-       6, 4, 2,
-
-       //left face
-       7, 0, 3,
-       7, 3, 5,
-
-       //top face
-       3, 2, 4,
-       3, 4, 5, 
-
-       //bottom face
-       0, 6, 1, 
-       0, 7, 6,
+       4, 5, 6,
+       6, 7, 4,
 
        //back face
-       7, 5, 4, 
-       6, 7, 4
+       8, 9, 10, 
+       10, 11, 8, 
+
+       //left face
+       12, 13, 14,
+       14, 15, 12,
+
+       //top face
+       16, 17, 18, 
+       18, 19, 16,
+
+       //bottom face
+       20, 21, 22, 
+       20, 23, 21
 
     };
+    float colours[]{
+       //front face
+       1.0f, 0.0f, 0.0f,
+       1.0f, 0.0f, 0.0f, 
+       1.0f, 0.0f, 0.0f,
+       1.0f, 0.0f, 0.0f,
 
-    /*----------BUFFER CREATION----------*/
-    unsigned int vbo, vao, ibo, colourBuffer;
-    glGenVertexArrays(1, &vao); //creates vertex array object
-    glGenBuffers(1, &vbo); //creates vertex buffer 
-    glGenBuffers(1, &ibo); //creates index buffer
-    glGenBuffers(1, &colourBuffer); //creates colour buffer
+       //right face
+       0.0f, 0.0f, 1.0f,
+       0.0f, 0.0f, 1.0f,
+       0.0f, 0.0f, 1.0f,
+       0.0f, 0.0f, 1.0f,
 
+       //back face
+       1.0f, 1.0f, 0.0f, 
+       1.0f, 1.0f, 0.0f,
+       1.0f, 1.0f, 0.0f,
+       1.0f, 1.0f, 0.0f,
+
+       //left face
+       0.0f, 1.0f, 0.0f, 
+       0.0f, 1.0f, 0.0f,
+       0.0f, 1.0f, 0.0f,
+       0.0f, 1.0f, 0.0f,
+
+       //top face
+       1.0f, 0.0f, 1.0f,
+       1.0f, 0.0f, 1.0f,
+       1.0f, 0.0f, 1.0f,
+       1.0f, 0.0f, 1.0f,
+
+       //bottom face
+       1.0f, 0.5f, 0.0f, 
+       1.0f, 0.5f, 0.0f,
+       1.0f, 0.5f, 0.0f,
+       1.0f, 0.5f, 0.0f,
+    };
+    
+    unsigned int vao;
+    glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
 
-    glBindBuffer(GL_ARRAY_BUFFER, colourBuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(colours), colours, GL_STATIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+    //vertex buffer creation
+    unsigned int vbo;
+    glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*)0);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+
+    //index buffer creation
+    unsigned int ibo;
+    glGenBuffers(1, &ibo);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+
+    //colour nuffer creation
+    unsigned int colourBuffer;
+    glGenBuffers(1, &colourBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, colourBuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(colours), colours, GL_STATIC_DRAW);
+
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(float) * 3, (void*)0);
     glEnableVertexAttribArray(1);
 
     /*
     ----------RENDER LOOP----------
     */
     while(!glfwWindowShouldClose(win)){
-        glClearColor(0.25f, 0.0f, 0.25f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glUseProgram(shaderProgram);
+        glClearColor(0.25f, 0.25f, 0.25f, 1.0f); //sets background colour
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //clears screen colour and depth buffer
 
+        glUseProgram(program);
+        
         glm::mat4 view = glm::mat4(1.0f);
         glm::mat4 projection = glm::mat4(1.0f);
         glm::mat4 model = glm::mat4(1.0f);
 
-        projection = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 1.0f, 100.0f);
+        projection = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 1.0f, 100.0f); //creates perspective viewing
         view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
-        model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 0.5f, 0.5f));
+        model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 0.5f, 0.5f)); //rotates model
         
-        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "projection"), 1, GL_FALSE, &projection[0][0]);
-        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "view"), 1, GL_FALSE, &view[0][0]);
-        glUniformMatrix4fv(glGetUniformLocation(shaderProgram, "model"), 1, GL_FALSE, &model[0][0]);
+        //sets uniforms
+        glUniformMatrix4fv(glGetUniformLocation(program, "projection"), 1, GL_FALSE, &projection[0][0]);
+        glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_FALSE, &view[0][0]);
+        glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_FALSE, &model[0][0]);
+        
+        
         glBindVertexArray(vao);
-
-        glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
+        
+        glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(unsigned int), GL_UNSIGNED_INT, 0); //draw our triangles
         glfwSwapBuffers(win);
-        glfwPollEvents();
+        glfwPollEvents(); //get input
     }
+    
+    //cleanup memory
     glDeleteVertexArrays(1, &vao);
     glDeleteBuffers(1, &vbo);
     glDeleteBuffers(1, &ibo);
     glDeleteBuffers(1, &colourBuffer);
-    glDeleteProgram(shaderProgram);
-
-
+    glDeleteProgram(program);
+    
     return 0;
 }
