@@ -128,7 +128,6 @@ int main(){
     ShaderSource source = ParseShader("shader.shader"); //creates source code for shaders
     unsigned int program = CreateShader(source.vertexSource, source.fragmentSource); //creates shader program
    
-
     
     /*----------BUFFER CREATION----------*/
     float vertices[]{
@@ -233,6 +232,14 @@ int main(){
        1.0f, 0.5f, 0.0f,
        1.0f, 0.5f, 0.0f,
     };
+
+     glm::vec3 cubeLocations[]{
+        glm::vec3(-1.0f,  0.75f,  -1.0f),
+        glm::vec3(1.0f,  0.75f,  -1.0f),
+        glm::vec3(-1.0f,  -0.75f,  -1.0f),
+        glm::vec3(1.0f,  -0.75f,  -1.0f),
+
+    };
     
     unsigned int vao;
     glGenVertexArrays(1, &vao);
@@ -271,25 +278,32 @@ int main(){
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //clears screen colour and depth buffer
 
         glUseProgram(program);
-        
-        glm::mat4 view = glm::mat4(1.0f);
-        glm::mat4 projection = glm::mat4(1.0f);
-        glm::mat4 model = glm::mat4(1.0f);
-
-        projection = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 1.0f, 100.0f); //creates perspective viewing
-        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
-        model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 0.5f, 0.5f)); //rotates model
-        
-        //sets uniforms
-        glUniformMatrix4fv(glGetUniformLocation(program, "projection"), 1, GL_FALSE, &projection[0][0]);
-        glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_FALSE, &view[0][0]);
-        glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_FALSE, &model[0][0]);
-        
-        
         glBindVertexArray(vao);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
         
-        glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(unsigned int), GL_UNSIGNED_INT, 0); //draw our triangles
+        glm::mat4 view = glm::mat4(1.0f);
+        glm::mat4 projection = glm::mat4(1.0f);
+        glm::vec3 cameraPosition = glm::vec3(0.0f, 0.0f, 2.0f);
+
+        projection = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 1.0f, 100.0f); //creates perspective viewing
+        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+        
+        //pass uniforms to shader
+        glUniformMatrix4fv(glGetUniformLocation(program, "projection"), 1, GL_FALSE, &projection[0][0]);
+        glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_FALSE, &view[0][0]);
+        
+        //render cubes
+        for(unsigned int i = 0; i < sizeof(cubeLocations) / sizeof(glm::vec3(0.0f)); i++){
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, cubeLocations[i]);
+            float angle = 45.0f;
+            if(i % 2){
+                angle *= 1;
+            }
+            model = glm::rotate(model, (float)glfwGetTime() * glm::radians(angle), glm::vec3(0.0f, 0.1f, 0.0f));
+            glUniformMatrix4fv(glGetUniformLocation(program, "model"), 1, GL_FALSE, &model[0][0]);
+            glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(unsigned int), GL_UNSIGNED_INT, 0); //draw our triangles
+        }
         glfwSwapBuffers(win);
         glfwPollEvents(); //get input
     }
