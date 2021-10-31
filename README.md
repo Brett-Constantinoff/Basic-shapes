@@ -1,5 +1,5 @@
 # Rotating-Cube
-Rotating cube created using C++ and OpenGl
+Rotating cubes created using C++ and OpenGl
 
 
 
