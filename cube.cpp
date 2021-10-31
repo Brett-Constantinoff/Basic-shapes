@@ -122,6 +122,7 @@ int main(){
     glewExperimental = GL_TRUE;
     if(glewInit() != GLEW_OK){
         std::cout << "Error initializing glew" << std::endl;
+        return -1;
     }
     
     /*----------SHADER SETUP----------*/
@@ -260,7 +261,7 @@ int main(){
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-    //colour nuffer creation
+    //colour buffer creation
     unsigned int colourBuffer;
     glGenBuffers(1, &colourBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, colourBuffer);
