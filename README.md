@@ -4,5 +4,8 @@ Rotating cube created using C++ and OpenGl
 
 
 
-https://user-images.githubusercontent.com/77081808/139101484-06a39a17-d398-464c-b46b-66e52130c180.mov
+
+https://user-images.githubusercontent.com/77081808/139605319-a8e5a15c-c2b3-4812-8531-c9090379e1f0.mov
+
+
 
