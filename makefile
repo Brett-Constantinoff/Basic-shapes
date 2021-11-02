@@ -1,4 +1,4 @@
-all: octo
+all: shapes
 
-octo: octo.cpp
-	g++  octo.cpp -std=c++11 -o octo -lglfw -lglew  -framework OpenGL
+shapes: shapes.cpp
+	g++  shapes.cpp -std=c++11 -o shapes -lglfw -lglew  -framework OpenGL
