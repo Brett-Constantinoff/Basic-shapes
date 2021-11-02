@@ -89,8 +89,6 @@ static ShaderSource ParseShader(const std::string &filePath){
     }
 
     return {ss[0].str(), ss[1].str()};
-
-
 }
 
 int main(){
@@ -108,7 +106,7 @@ int main(){
 #endif
 
     const unsigned int width = 800, height = 600;
-    GLFWwindow *win = glfwCreateWindow(width, height, "Cube", NULL, NULL); //creates current window
+    GLFWwindow *win = glfwCreateWindow(width, height, "Crazy Shapes", NULL, NULL); //creates current window
     if(!win){
         std::cout << "Error creating OpenGL window" << std::endl;
         return -1;
@@ -122,7 +120,6 @@ int main(){
     glewExperimental = GL_TRUE;
     if(glewInit() != GLEW_OK){
         std::cout << "Error initializing glew" << std::endl;
-        return -1;
     }
     
     /*----------SHADER SETUP----------*/
@@ -132,114 +129,96 @@ int main(){
     
     /*----------BUFFER CREATION----------*/
     float vertices[]{
-      //front face
-      -0.5f, 0.0f, 0.0f, //0
-      0.0f, 0.5f, 0.0f, //1
-      -0.5f, 0.5f, 0.0f, //2
-      0.0f, 0.0f, 0.0f, //3
+        //bottom pyramid
+        0.0f, -0.5f, 0.0f,
+        0.5f, 0.0f, 0.5f, 
+        -0.5f, 0.0f, 0.5f,
 
-      //right face
-      0.0f, 0.5f, 0.0f, //4
-      0.0f, 0.0f, 0.0f, //5
-      0.0f, 0.0f, 0.5f, //6
-      0.0f, 0.5f, 0.5f, //7
+        0.0f, -0.5f, 0.0f, 
+        0.5f, 0.0f, -0.5f, 
+        0.5f, 0.0f, 0.5f,
 
-      //back face
-      0.0f, 0.5f, 0.5f, //8
-      0.0f, 0.0f, 0.5f, //9
-      -0.5f, 0.0f, 0.5f, //10
-      -0.5f, 0.5f, 0.5f, //11
+        0.0f, -0.5f, 0.0f, 
+        -0.5f, 0.0f, 0.5f, 
+        -0.5f, 0.0f, -0.5f,
 
-      //left face
-      -0.5f, 0.5f, 0.0f, //12
-      -0.5f, 0.5f, 0.5f, //13
-      -0.5f, 0.0f, 0.5f, //14
-      -0.5f, 0.0f, 0.0f,  //15
+        0.0f, -0.5f, 0.0f, 
+        -0.5f, 0.0f, -0.5f, 
+        0.5f, 0.0f, -0.5f,
 
-      //top face
-      0.0f, 0.5f, 0.0f, //16
-      0.0f, 0.5f, 0.5f, //17
-      -0.5f, 0.5f, 0.5f, //18
-      -0.5f, 0.5f, 0.0f, //19
+        //bottom pyramid
+        0.0f, 0.5f, 0.0f, 
+        0.5f, 0.0f, 0.5f, 
+        0.5f, 0.0f, -0.5f, 
 
-      //bottom face
-      0.0f, 0.0f, 0.0f, //20
-      -0.5f, 0.0f, 0.5f, //21
-      0.0f, 0.0f, 0.5f, //22
-      -0.5f, 0.0f, 0.0f  //23
+        0.0f, 0.5f, 0.0f, 
+        0.5f, 0.0f, -0.5f, 
+        -0.5f, 0.0f, -0.5f, 
 
-      
+        0.0f, 0.5f, 0.0f, 
+        -0.5f, 0.0f, -0.5f, 
+        -0.5f, 0.0f, 0.5f, 
+
+        0.0f, 0.5f, 0.0f, 
+        -0.5f, 0.0f, 0.5f, 
+        0.5f, 0.0f, 0.5f,
     };
     unsigned int indices[]{
-       //front face
-       0, 1, 2,
-       1, 0, 3,
-
-       //right face
-       4, 5, 6,
-       6, 7, 4,
-
-       //back face
-       8, 9, 10, 
-       10, 11, 8, 
-
-       //left face
+       //bottom pyramid
+       0, 1, 2, 
+       3, 4, 5, 
+       6, 7, 8,
+       9, 10, 11, 
+     
+       //top pyramid
        12, 13, 14,
-       14, 15, 12,
-
-       //top face
-       16, 17, 18, 
-       18, 19, 16,
-
-       //bottom face
-       20, 21, 22, 
-       20, 23, 21
+       15, 16, 17,
+       18, 19, 20,
+       21, 22, 23
 
     };
     float colours[]{
-       //front face
-       1.0f, 0.0f, 0.0f,
-       1.0f, 0.0f, 0.0f, 
-       1.0f, 0.0f, 0.0f,
-       1.0f, 0.0f, 0.0f,
+        //top pyramid
+        1.0f, 0.0f, 0.0f,
+        1.0f, 0.0f, 0.0f,
+        1.0f, 0.0f, 0.0f,
 
-       //right face
-       0.0f, 0.0f, 1.0f,
-       0.0f, 0.0f, 1.0f,
-       0.0f, 0.0f, 1.0f,
-       0.0f, 0.0f, 1.0f,
+        0.0f, 1.0f, 0.0f,
+        0.0f, 1.0f, 0.0f,
+        0.0f, 1.0f, 0.0f,
 
-       //back face
-       1.0f, 1.0f, 0.0f, 
-       1.0f, 1.0f, 0.0f,
-       1.0f, 1.0f, 0.0f,
-       1.0f, 1.0f, 0.0f,
+        0.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 1.0f,
+        0.0f, 0.0f, 1.0f,
 
-       //left face
-       0.0f, 1.0f, 0.0f, 
-       0.0f, 1.0f, 0.0f,
-       0.0f, 1.0f, 0.0f,
-       0.0f, 1.0f, 0.0f,
+        1.0f, 1.0f, 0.0f,
+        1.0f, 1.0f, 0.0f,
+        1.0f, 1.0f, 0.0f,
 
-       //top face
-       1.0f, 0.0f, 1.0f,
-       1.0f, 0.0f, 1.0f,
-       1.0f, 0.0f, 1.0f,
-       1.0f, 0.0f, 1.0f,
+        //bottom pyramid
+        1.0f, 0.0f, 1.0f,
+        1.0f, 0.0f, 1.0f,
+        1.0f, 0.0f, 1.0f,
 
-       //bottom face
-       1.0f, 0.5f, 0.0f, 
-       1.0f, 0.5f, 0.0f,
-       1.0f, 0.5f, 0.0f,
-       1.0f, 0.5f, 0.0f,
+        0.5f, 0.5f, 0.8f, 
+        0.5f, 0.5f, 0.8f, 
+        0.5f, 0.5f, 0.8f, 
+
+        0.60f, 0.20f, 0.35f, 
+        0.60f, 0.20f, 0.35f, 
+        0.60f, 0.20f, 0.35f, 
+
+        0.15f, 0.15f, 0.80f,
+        0.15f, 0.15f, 0.80f,
+        0.15f, 0.15f, 0.80f,
+
     };
 
-     glm::vec3 cubeLocations[]{
-        glm::vec3(-1.0f,  0.75f,  -1.0f),
-        glm::vec3(1.0f,  0.75f,  -1.0f),
-        glm::vec3(-1.0f,  -0.75f,  -1.0f),
-        glm::vec3(1.0f,  -0.75f,  -1.0f),
-
+     glm::vec3 octohedrons[]{
+       glm::vec3(-2.0f, 1.5f, -3.0f),
+       glm::vec3(2.0f, 1.5f, -3.0f),
+       glm::vec3(-2.0f, -1.5f, -3.0f),
+       glm::vec3(2.0f, -1.5f, -3.0f)
     };
     
     unsigned int vao;
@@ -261,7 +240,7 @@ int main(){
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-    //colour buffer creation
+    //colour nuffer creation
     unsigned int colourBuffer;
     glGenBuffers(1, &colourBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, colourBuffer);
@@ -275,17 +254,16 @@ int main(){
     */
     while(!glfwWindowShouldClose(win)){
 
-        glClearColor(0.25f, 0.25f, 0.25f, 1.0f); //sets background colour
+    
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f); //sets background colour
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); //clears screen colour and depth buffer
 
         glUseProgram(program);
         glBindVertexArray(vao);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-        
+
         glm::mat4 view = glm::mat4(1.0f);
         glm::mat4 projection = glm::mat4(1.0f);
-        glm::vec3 cameraPosition = glm::vec3(0.0f, 0.0f, 2.0f);
-
         projection = glm::perspective(glm::radians(45.0f), (float)width / (float)height, 1.0f, 100.0f); //creates perspective viewing
         view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
         
@@ -294,9 +272,9 @@ int main(){
         glUniformMatrix4fv(glGetUniformLocation(program, "view"), 1, GL_FALSE, &view[0][0]);
         
         //render cubes
-        for(unsigned int i = 0; i < sizeof(cubeLocations) / sizeof(glm::vec3(0.0f)); i++){
+        for(unsigned int i = 0; i < sizeof(octohedrons) / sizeof(glm::vec3(0.0f)); i++){
             glm::mat4 model = glm::mat4(1.0f);
-            model = glm::translate(model, cubeLocations[i]);
+            model = glm::translate(model, octohedrons[i]);
             float angle = 45.0f;
             if(i % 2){
                 angle *= -1;
