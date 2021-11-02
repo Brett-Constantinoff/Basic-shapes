@@ -120,6 +120,7 @@ int main(){
     glewExperimental = GL_TRUE;
     if(glewInit() != GLEW_OK){
         std::cout << "Error initializing glew" << std::endl;
+        return -1;
     }
     
     /*----------SHADER SETUP----------*/
