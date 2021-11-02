@@ -1,4 +1,4 @@
-all: cube
+all: octo
 
-cube: cube.cpp
-	g++  cube.cpp -std=c++11 -o cube -lglfw -lglew  -framework OpenGL
+octo: octo.cpp
+	g++  octo.cpp -std=c++11 -o octo -lglfw -lglew  -framework OpenGL
