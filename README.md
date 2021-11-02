@@ -1,11 +1,5 @@
-# Rotating-Cube
-Rotating cubes created using C++ and OpenGl
+# Basic Shapes
+Rotating octohedrons created using C++ and OpenGl
 
-
-
-
-
-https://user-images.githubusercontent.com/77081808/139605319-a8e5a15c-c2b3-4812-8531-c9090379e1f0.mov
-
-
+https://user-images.githubusercontent.com/77081808/139774489-a56ae411-00fb-4f4c-ac19-3d58ee5d0094.mov
 
