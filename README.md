@@ -1,5 +1,9 @@
 # Basic Shapes
-Rotating octohedrons created using C++ and OpenGl
+Rotating shapes created using C++ and OpenGl
+Uploading Screen Recording 2021-11-04 at 11.59.24 AM.mov…
 
-https://user-images.githubusercontent.com/77081808/139774489-a56ae411-00fb-4f4c-ac19-3d58ee5d0094.mov
+
+
+
+
 
