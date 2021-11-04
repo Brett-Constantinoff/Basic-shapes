@@ -133,7 +133,7 @@ int main(){
 
     };
 
-     glm::vec3 octohedrons[]{
+     glm::vec3 shapes[]{
        glm::vec3(-2.0f, 1.5f, -3.0f),
        glm::vec3(2.0f, 1.5f, -3.0f),
        glm::vec3(-2.0f, -1.5f, -3.0f),
@@ -204,9 +204,9 @@ int main(){
         glUniformMatrix4fv(glGetUniformLocation(myShader.ID, "view"), 1, GL_FALSE, &view[0][0]);
         
         //render cubes
-        for(unsigned int i = 0; i < sizeof(octohedrons) / sizeof(glm::vec3(0.0f)); i++){
+        for(unsigned int i = 0; i < sizeof(shapes) / sizeof(glm::vec3(0.0f)); i++){
             glm::mat4 model = glm::mat4(1.0f);
-            model = glm::translate(model, octohedrons[i]);
+            model = glm::translate(model, shapes[i]);
             float angle = 45.0f;
             if(i % 2){
                 angle *= -1.5 * i;
